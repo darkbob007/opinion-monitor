@@ -1,0 +1,33 @@
+name: Daily Opinion Auto Update
+
+on:
+  schedule:
+    # 国际标准时间 (UTC) 01:00，对应北京时间 09:00 (东八区时间)
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 允许你随时在 GitHub 页面上手动点击运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 授予写入权限，以便脚本自动将结果写回仓库
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Run Crawler Script
+      run: python crawler.py
+
+    - name: Save & Push Changes
+      run: |
+        git config --global user.name "GitHub Action Bot"
+        git config --global user.email "action@github.com"
+        git add opinion_data.json
+        git commit -m "Auto-updated opinions at 09:00" || exit 0
+        git push origin main
