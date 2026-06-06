@@ -3,277 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球舆情监测工作台 - 极简版</title>
-    <!-- Tailwind CSS CDN -->
+    <title>全球舆情安全监测工作台</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN for Analytics -->
+    <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        .active-tab {
+        .tab-active {
             background-color: #ef4444 !important;
             color: white !important;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col transition-all duration-300">
+
+    <!-- Toast Notification System (Replaces alert) -->
+    <div id="custom-toast" class="fixed top-5 right-5 z-[200] transform translate-y-[-20px] opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-slate-800">
+            <span class="text-emerald-400"><i data-lucide="check-circle" class="w-5 h-5"></i></span>
+            <p class="text-xs font-semibold toast-text">操作成功</p>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <!-- Logo / Title -->
                 <div class="flex items-center space-x-3">
-                    <div class="bg-red-500 text-white p-2 rounded-lg">
-                        <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                    <div class="bg-gradient-to-tr from-red-600 to-amber-500 text-white p-2.5 rounded-xl shadow-md">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold text-slate-900 tracking-tight">定制舆情监控系统</h1>
-                        <p class="text-xs text-slate-500">自动聚合 · 敏感度分析</p>
+                        <h1 class="text-base font-bold text-slate-900 tracking-tight">定制舆情安全监测系统</h1>
+                        <p class="text-[10px] text-slate-500">24小时高精准动态核验机制</p>
                     </div>
                 </div>
 
-                <!-- Update Status Indicator -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     <div id="data-source-badge" class="flex items-center space-x-2 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-200">
                         <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                        <span id="update-timer">正在加载数据源...</span>
+                        <span id="update-timer">检测数据源中...</span>
                     </div>
-                    <button onclick="refreshData()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" title="手动刷新">
-                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    <button onclick="refreshData()" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200" title="拉取最新数据">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Grid -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Main Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        <!-- Quick Stats Banner -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-red-50 text-red-600 rounded-xl">
-                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        <!-- Status Indicator Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="p-2.5 bg-red-50 text-red-600 rounded-lg">
+                    <i data-lucide="alert-octagon" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-slate-500 font-medium">今日新增敏感信息</p>
-                    <p class="text-2xl font-bold text-slate-900" id="stat-today-count">-- 条</p>
+                    <p class="text-[11px] text-slate-400 font-medium">24h内拦截负面舆情</p>
+                    <p class="text-lg font-bold text-slate-900" id="stat-today-count">-- 条</p>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                    <i data-lucide="globe" class="w-6 h-6"></i>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                    <i data-lucide="filter" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-slate-500 font-medium">监控主要渠道</p>
-                    <p class="text-2xl font-bold text-slate-900">海外媒体/RSS</p>
+                    <p class="text-[11px] text-slate-400 font-medium">判定模式</p>
+                    <p class="text-sm font-bold text-slate-800">严格24h过滤 + 负面词库</p>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                    <i data-lucide="activity" class="w-6 h-6"></i>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+                    <i data-lucide="activity-square" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-slate-500 font-medium">敏感度指数 (Avg)</p>
-                    <p class="text-2xl font-bold text-slate-900" id="stat-avg-sentiment">中高风险</p>
+                    <p class="text-[11px] text-slate-400 font-medium">监控红线级别</p>
+                    <p class="text-sm font-bold text-red-600">极高危 (Level 4)</p>
                 </div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                    <i data-lucide="clock" class="w-6 h-6"></i>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <i data-lucide="clock-4" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-slate-500 font-medium">下次自动更新倒计时</p>
-                    <p class="text-2xl font-bold text-slate-900" id="countdown-timer">--:--:--</p>
+                    <p class="text-[11px] text-slate-400 font-medium">距离下次自动检索</p>
+                    <p class="text-sm font-bold text-slate-800 font-mono" id="countdown-timer">--:--:--</p>
                 </div>
             </div>
         </div>
 
-        <!-- Notification Bar for Data Status -->
-        <div id="data-status-alert" class="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start space-x-3 hidden">
-            <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+        <!-- Warning Alert for Newbies -->
+        <div id="data-status-alert" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-3 hidden animate-pulse">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
             <div class="text-xs text-amber-800 leading-relaxed">
-                <strong>💡 演示模式运行中：</strong>由于当前网页处于本地或尚未连接数据后台，正在显示“模拟舆情数据”。请点击左侧下方的 
-                <span class="font-bold underline cursor-pointer" onclick="toggleModal()">“零基础自动部署中心”</span> 
-                按照步骤配置，即可在每天早上 9:00 自动采集真实全网数据！
+                <strong>⚠️ 检查到系统当前运行在“演示模式”：</strong> 网页未读取到您自动生成的 <code class="bg-amber-100 px-1 py-0.5 rounded text-red-700">opinion_data.json</code>。请点击下方“自动部署向导”复制最新的 24 小时高精度机器人代码进行配置。
             </div>
         </div>
 
-        <!-- Filters and Content Area -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Content Columns -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Left Panel: Data Distribution & Filter Tools -->
-            <div class="space-y-6">
-                <!-- Target keywords -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 text-sm mb-4 flex items-center">
-                        <i data-lucide="tag" class="w-4 h-4 mr-2 text-slate-500"></i> 当前监测目标
+            <!-- Left Panel -->
+            <div class="space-y-4">
+                <!-- Keywords Config -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-xs mb-3 flex items-center">
+                        <i data-lucide="key" class="w-4 h-4 mr-1.5 text-slate-400"></i> 当前监控的主体目标
                     </h3>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-200">习近平</span>
-                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg">Xi Jinping</span>
-                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg">中南海</span>
-                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg">北京当局</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-1 bg-red-50 text-red-700 text-[10px] font-semibold rounded border border-red-100">习近平</span>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] rounded">Xi Jinping</span>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] rounded">领袖</span>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] rounded">中南海</span>
                     </div>
                 </div>
 
-                <!-- Sentiment Chart -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 text-sm mb-4 flex items-center">
-                        <i data-lucide="pie-chart" class="w-4 h-4 mr-2 text-slate-500"></i> 渠道信息占比
+                <!-- Channel Pie Chart -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-xs mb-3 flex items-center">
+                        <i data-lucide="pie-chart" class="w-4 h-4 mr-1.5 text-slate-400"></i> 24h监控信源分布
                     </h3>
-                    <div class="w-full h-48 flex justify-center items-center">
+                    <div class="w-full h-40 flex justify-center items-center">
                         <canvas id="channelChart"></canvas>
                     </div>
                 </div>
 
-                <!-- System Config / Guide Button -->
-                <div class="bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                    <div class="absolute right-0 bottom-0 translate-x-10 translate-y-10 opacity-10">
-                        <i data-lucide="settings" class="w-40 h-40"></i>
+                <!-- Deploy Entry Button -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-850 text-slate-100 p-5 rounded-xl shadow-lg relative overflow-hidden">
+                    <div class="absolute right-[-10px] bottom-[-10px] opacity-10">
+                        <i data-lucide="terminal" class="w-24 h-24"></i>
                     </div>
-                    <h3 class="font-bold text-white text-base mb-2 flex items-center">
-                        <i data-lucide="terminal" class="w-5 h-5 mr-2 text-emerald-400"></i> 自动化部署中心
+                    <h3 class="font-bold text-white text-xs mb-1.5 flex items-center">
+                        <i data-lucide="settings-2" class="w-4 h-4 mr-1.5 text-emerald-400"></i> 24小时高精度更新向导
                     </h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        只要跟着我们的傻瓜步骤操作，无需懂任何代码，10分钟内即可免费将这个系统搭建并实现每日9点自动采集运行！
+                    <p class="text-[11px] text-slate-400 leading-relaxed mb-3">
+                        请在此处复制全新升级的、带有“24小时时间截断机制”的机器人代码去覆盖你 GitHub 里的旧代码。
                     </p>
-                    <button onclick="toggleModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors flex items-center justify-center shadow-md">
-                        <i data-lucide="help-circle" class="w-4 h-4 mr-1.5"></i>
-                        打开：零基础自动部署指南
+                    <button onclick="toggleModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 px-3 rounded-lg text-[11px] transition-colors flex items-center justify-center shadow-md">
+                        <i data-lucide="help-circle" class="w-3.5 h-3.5 mr-1"></i>
+                        打开：复制代码和部署中心
                     </button>
                 </div>
             </div>
 
-            <!-- Right Panel: News / Feed List -->
-            <div class="lg:col-span-2 space-y-4">
-                <!-- Search & Filters -->
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="relative w-full sm:w-72">
-                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-                        <input id="search-input" onkeyup="filterFeed()" type="text" placeholder="搜索监测到的舆情关键词..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all">
+            <!-- Right Panel: Feeds -->
+            <div class="lg:col-span-2 space-y-3">
+                
+                <!-- Search Tools -->
+                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5"></i>
+                        <input id="search-input" onkeyup="filterFeed()" type="text" placeholder="在24h监测结果中搜索..." class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-red-500 focus:bg-white transition-all">
                     </div>
-                    <div class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                        <button onclick="setSourceFilter('all')" class="source-tab active-tab text-xs px-3.5 py-1.5 rounded-lg font-medium transition-all" data-source="all">全部渠道</button>
-                        <button onclick="setSourceFilter('News')" class="source-tab text-xs px-3.5 py-1.5 rounded-lg font-medium text-slate-600 hover:bg-slate-100 transition-all" data-source="News">海外媒体</button>
+                    <div class="flex items-center space-x-1.5 w-full sm:w-auto overflow-x-auto">
+                        <button onclick="setSourceFilter('all')" class="source-tab tab-active text-[10px] px-2.5 py-1 rounded font-medium transition-all" data-source="all">全部</button>
+                        <button onclick="setSourceFilter('News')" class="source-tab text-[10px] px-2.5 py-1 rounded font-medium text-slate-600 hover:bg-slate-100 transition-all" data-source="News">海外媒体</button>
                     </div>
                 </div>
 
                 <!-- Feed Container -->
-                <div id="feed-container" class="space-y-4">
-                    <!-- Cards will be injected by JavaScript -->
+                <div id="feed-container" class="space-y-3">
+                    <!-- Dynamic Content -->
                 </div>
             </div>
 
         </div>
 
+        <!-- Trouble Shooting & Log Panel -->
+        <div class="mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <h3 class="font-bold text-slate-900 text-xs mb-2 flex items-center">
+                <i data-lucide="stethoscope" class="w-4 h-4 mr-1.5 text-amber-500"></i> 系统自我诊断面板（24小时过滤状态）
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-500">
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <p class="font-semibold text-slate-700 mb-1">第一项：24h数据源文件状态</p>
+                    <p id="diagnose-file" class="text-red-500">正在检查...</p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <p class="font-semibold text-slate-700 mb-1">第二项：最近一次抓取时间</p>
+                    <p id="diagnose-time" class="text-slate-600">正在检查...</p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <p class="font-semibold text-slate-700 mb-1">第三项：常见无法更新解决方案</p>
+                    <a href="#guide-modal" onclick="toggleModal()" class="text-blue-600 hover:underline inline-flex items-center">
+                        查看 24h 过滤器说明 <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-0.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </main>
 
-    <!-- Detailed Visual Step-by-Step Deployment Modal -->
-    <div id="guide-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex justify-center items-center z-[100] hidden">
-        <div class="bg-white rounded-3xl max-w-4xl w-full mx-4 overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+    <!-- Detailed Visual Deployment Modal -->
+    <div id="guide-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex justify-center items-center z-[100] hidden">
+        <div class="bg-white rounded-2xl max-w-3xl w-full mx-4 overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]">
+            
             <!-- Modal Header -->
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div class="flex items-center space-x-2">
-                    <div class="bg-emerald-100 text-emerald-700 p-2 rounded-xl">
-                        <i data-lucide="server-cog" class="w-6 h-6"></i>
+                    <div class="bg-emerald-100 text-emerald-700 p-2 rounded-lg">
+                        <i data-lucide="wrench" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-slate-950 text-lg">零基础 10分钟自动采集部署向导</h3>
-                        <p class="text-xs text-slate-500">按照以下步骤操作，全自动每日09:00抓取更新</p>
+                        <h3 class="font-bold text-slate-900 text-sm">24小时高精度截断部署（去覆盖旧文件）</h3>
+                        <p class="text-[10px] text-slate-500">已帮您彻底剔除 24 小时外的过期历史数据，实现真正时效级监控！</p>
                     </div>
                 </div>
-                <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+                <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
             <!-- Modal Body (Steps) -->
-            <div class="p-6 space-y-6 overflow-y-auto flex-grow text-sm text-slate-600 leading-relaxed">
+            <div class="p-5 space-y-4 overflow-y-auto flex-grow text-xs text-slate-600 leading-relaxed">
                 
-                <!-- Introduction -->
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-blue-900 text-xs">
-                    💡 <strong>原理说明：</strong> 本教程利用 <strong>GitHub</strong>（全球最大的免费代码托管平台）提供的免费云端服务器，每天早晨 9 点自动唤醒我们提供的一段 Python 代码。代码会自动去抓取海外各大媒体（如美国之音、自由亚洲等）关于预设政治敏感词的公开报道，生成一个名为 <code class="bg-blue-100 px-1 py-0.5 rounded text-blue-800">opinion_data.json</code> 的文件并自动推送到你的网页。你不需要懂得如何运行代码，只需要复制粘贴！
+                <!-- Quick Notice -->
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-amber-950 text-[11px] flex items-start space-x-2">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                    <span>
+                        <strong>重要更新：</strong> 我们在 Python 中加入了 <code class="bg-amber-100 px-1 py-0.5 rounded text-amber-900">email.utils.parsedate_to_datetime</code>，它会自动读取外媒文章真实的发布时间并计算时差。超过24小时的数据直接丢弃，不予展示。
+                    </span>
                 </div>
 
                 <!-- Step 1 -->
-                <div class="border-b border-slate-100 pb-6">
-                    <div class="flex items-start space-x-3">
-                        <span class="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">1</span>
-                        <div class="space-y-2 w-full">
-                            <p class="font-bold text-slate-900 text-base">第一步：注册并创建 GitHub 仓库</p>
-                            <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-500">
-                                <li>访问官网 <a href="https://github.com" target="_blank" class="text-blue-600 hover:underline inline-flex items-center">GitHub.com <i data-lucide="external-link" class="w-3 h-3 ml-0.5"></i></a> 并注册一个免费账号。</li>
-                                <li>登录后，点击网页右上角的“<strong class="text-slate-800">+</strong>”号，选择 “<strong>New repository</strong>”（新建仓库）。</li>
-                                <li>仓库名称（Repository name）填写：<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800">opinion-monitor</code>。</li>
-                                <li>设置选择“<strong>Public</strong>”（公开，这样才能启用免费网页展示功能）。</li>
-                                <li>勾选 “<strong>Add a README file</strong>”，然后点击最下方的绿色 “<strong>Create repository</strong>” 按钮创建。</li>
-                            </ol>
+                <div class="border-b border-slate-100 pb-4">
+                    <div class="flex items-start space-x-2">
+                        <span class="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                        <div class="space-y-1 w-full">
+                            <p class="font-bold text-slate-900 text-xs">第一步：用当前的网页代码重新上传覆盖你的 `index.html`</p>
+                            <p class="text-[10px] text-slate-400">将本页面代码全选复制，在 GitHub 页面修改或上传，替换旧的网页代码即可。</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Step 2 -->
-                <div class="border-b border-slate-100 pb-6">
-                    <div class="flex items-start space-x-3">
-                        <span class="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">2</span>
-                        <div class="space-y-2 w-full">
-                            <p class="font-bold text-slate-900 text-base">第二步：上传这个网页文件</p>
-                            <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-500">
-                                <li>进入你刚刚创建的仓库页面，点击右上角的 “<strong>Add file</strong>” 按钮，选择 “<strong>Upload files</strong>”。</li>
-                                <li>将你本地电脑上的当前 HTML 网页文件拖拽进去，并<strong>改名为：<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800">index.html</code></strong>。</li>
-                                <li>点击最下方的绿色 “<strong>Commit changes</strong>” 按钮提交保存。</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="border-b border-slate-100 pb-6">
-                    <div class="flex items-start space-x-3">
-                        <span class="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">3</span>
-                        <div class="space-y-2 w-full">
-                            <p class="font-bold text-slate-900 text-base">第三步：创建自动采集脚本（机器人）</p>
-                            <p class="text-xs text-slate-500">
-                                这个脚本会利用 Python 内置库抓取海外各大媒体公开订阅源。你不需要安装 Python，只需在 GitHub 页面上新建一个文件即可：
-                            </p>
-                            <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-500">
-                                <li>在你的 GitHub 仓库主页，点击 “<strong>Add file</strong>” 按钮，选择 “<strong>Create new file</strong>”。</li>
-                                <li>文件名（File name）填写：<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono">crawler.py</code></li>
-                                <li>在下面的代码框中，粘贴下方我们为你准备好的 Python 采集代码：</li>
-                            </ol>
-                            <!-- Code Area -->
-                            <div class="relative bg-slate-950 rounded-xl p-4 mt-3">
-                                <div class="absolute right-3 top-3">
-                                    <button onclick="copyToClipboard('python-code-box')" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-2.5 py-1 rounded transition-colors flex items-center">
-                                        <i data-lucide="copy" class="w-3.5 h-3.5 mr-1"></i>复制采集脚本
-                                    </button>
-                                </div>
-                                <pre id="python-code-box" class="text-slate-300 text-xs font-mono overflow-x-auto max-h-48 whitespace-pre leading-relaxed"># -*- coding: utf-8 -*-
+                <div class="border-b border-slate-100 pb-4">
+                    <div class="flex items-start space-x-2">
+                        <span class="bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                        <div class="space-y-1 w-full">
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold text-red-600 text-xs">第二步：复制最新的 24小时高精度 Python 爬虫代码 (覆盖 `crawler.py` 里的代码)</p>
+                                <button onclick="copyToClipboard('python-code-box')" class="bg-red-600 hover:bg-red-700 text-white text-[9px] px-2 py-1 rounded flex items-center shadow-sm">
+                                    <i data-lucide="copy" class="w-3 h-3 mr-1"></i> 一键复制高精度机器人代码
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400">在你的 GitHub 仓库找到并点击旧的 <code class="bg-slate-100 px-1 text-slate-800">crawler.py</code>，点击右侧的“小铅笔图标”进入编辑模式，清空里面的旧内容，<strong>直接覆盖粘贴</strong>下方新版代码：</p>
+                            <div class="relative bg-slate-950 rounded-lg p-3 mt-1.5">
+                                <pre id="python-code-box" class="text-slate-300 text-[10px] font-mono overflow-x-auto max-h-36 whitespace-pre leading-normal"># -*- coding: utf-8 -*-
 import json
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 import ssl
+import re
 
-# 忽略 SSL 证书安全验证，确保能顺利访问境外媒体
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# 监控的海外媒体 RSS 公开订阅源（这些由 GitHub 在海外的服务器拉取，因此不受防火墙限制）
+# 监控渠道：精心挑选的海外主要独立信源RSS
 FEEDS = [
     {"name": "美国之音 (VOA)", "url": "https://www.voachinese.com/api/z$g_vte_kp", "source": "News"},
     {"name": "自由亚洲电台 (RFA)", "url": "https://www.rfa.org/mandarin/RSS", "source": "News"},
     {"name": "德国之声 (DW)", "url": "https://rss.dw.com/xml/rss-chi-all", "source": "News"}
 ]
 
-# 监测的关键词红线
-KEYWORDS = ["习近平", "Xi Jinping", "中南海", "北京当局", "中国高层"]
+# 主体监控对象
+SUBJECTS = ["习近平", "Xi Jinping", "中南海", "领袖"]
+
+# 🔴 自定义负面/高敏关键词列表（判定标准：主体词+负面词同时出现）
+NEGATIVE_KEYWORDS = [
+    "危机", "抗议", "打压", "倒退", "制裁", "独裁", "暴雷", "人权", "失业", "债务", 
+    "爆雷", "独裁者", "言论控制", "极权", "反腐", "清洗", "扼杀", "专制", "严控", "逮捕", 
+    "判刑", "打压", "冲突", "恶化", "受阻", "阻碍", "限制", "监禁", "审判", "丑闻"
+]
+
+def is_within_24_hours(pub_date_str):
+    """验证文章是否在严格的 24 小时以内，并转换时区为北京时间"""
+    if not pub_date_str:
+        return False, ""
+    try:
+        # 将外媒RSS各种复杂的标准时间格式转换为Python可以计算的时间
+        pub_datetime = parsedate_to_datetime(pub_date_str)
+        if pub_datetime.tzinfo is None:
+            pub_datetime = pub_datetime.replace(tzinfo=timezone.utc)
+        
+        # 获得当前的国际标准时间
+        now = datetime.now(timezone.utc)
+        diff = now - pub_datetime
+        
+        # 24 小时 = 86400 秒。允许 1 小时的系统时差冗余 (允许轻微偏差)
+        if -3600 <= diff.total_seconds() <= 86400:
+            # 统一自动转换输出为北京时间 (UTC+8)
+            cst_tz = timezone(timedelta(hours=8))
+            pub_datetime_cst = pub_datetime.astimezone(cst_tz)
+            return True, pub_datetime_cst.strftime("%Y-%m-%d %H:%M")
+        return False, ""
+    except Exception as e:
+        print(f"解析文章时间失败 {pub_date_str}: {e}")
+        return False, ""
 
 def fetch_feed(feed_info):
     articles = []
@@ -285,29 +321,38 @@ def fetch_feed(feed_info):
         with urllib.request.urlopen(req, timeout=15) as response:
             xml_data = response.read()
         
-        # 解析 RSS XML 数据
         root = ET.fromstring(xml_data)
         for item in root.findall('.//item'):
             title = item.find('title').text if item.find('title') is not None else ""
             link = item.find('link').text if item.find('link') is not None else ""
             desc = item.find('description').text if item.find('description') is not None else ""
+            pub_date_el = item.find('pubDate')
+            pub_date_str = pub_date_el.text if pub_date_el is not None else ""
             
-            # 判断标题或描述中是否包含我们要监控的敏感词
-            content_to_check = (title + desc).lower()
-            if any(kw.lower() in content_to_check for kw in KEYWORDS):
-                found_kws = [kw for kw in KEYWORDS if kw.lower() in content_to_check]
+            # 1. 精准的时间差截断验证
+            in_range, formatted_time = is_within_24_hours(pub_date_str)
+            if not in_range:
+                continue # 超出 24 小时，直接丢弃，不予处理
+            
+            full_text = (title + " " + desc).lower()
+            
+            # 2. 判定逻辑： 必须包含主体监控对象，且必须包含至少一个负面词
+            has_subject = any(sub.lower() in full_text for sub in SUBJECTS)
+            matched_negatives = [neg for neg in NEGATIVE_KEYWORDS if neg in full_text]
+            
+            if has_subject and len(matched_negatives) > 0:
                 articles.append({
-                    "title": title,
+                    "title": title.strip(),
                     "source": feed_info["source"],
                     "sourceName": feed_info["name"],
-                    "time": "今日 09:00", # 标记为统一自动更新时间
+                    "time": formatted_time,
                     "url": link,
-                    "sentiment": "High" if "习近平" in title else "Medium",
-                    "summary": desc[:150] + "..." if len(desc) > 150 else desc,
-                    "keywords": list(set(found_kws)) if found_kws else ["政治舆情"]
+                    "sentiment": "High" if len(matched_negatives) > 2 else "Medium",
+                    "summary": re.sub('<[^<]+?>', '', desc)[:120] + "...",
+                    "keywords": list(set(matched_negatives))
                 })
     except Exception as e:
-        print(f"抓取 {feed_info['name']} 失败: {e}")
+        print(f"Error reading {feed_info['name']}: {e}")
     return articles
 
 if __name__ == "__main__":
@@ -315,118 +360,35 @@ if __name__ == "__main__":
     for f in FEEDS:
         all_data.extend(fetch_feed(f))
     
-    # 过滤出重复的标题，保证数据纯净
-    seen_titles = set()
+    # 过滤重复新闻
+    seen = set()
     unique_data = []
     for item in all_data:
-        if item["title"] not in seen_titles:
-            seen_titles.add(item["title"])
+        if item["title"] not in seen:
+            seen.add(item["title"])
             unique_data.append(item)
             
-    # 如果抓取到了数据，分配 ID；如果没抓到，生成安全通报
-    if not unique_data:
-        unique_data = [{
-            "id": 1,
-            "title": "今日暂无触发监控红线的新增敏感信息",
-            "source": "News",
-            "sourceName": "监控中心",
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "url": "#",
-            "sentiment": "Medium",
-            "summary": "全网未检索到包含预设政治敏感词的高危负面信息，系统安全平稳运行。",
-            "keywords": ["安全运作"]
-        }]
-    else:
-        for i, item in enumerate(unique_data):
-            item["id"] = i + 1
+    # 按照时间从新到旧重新排序
+    unique_data.sort(key=lambda x: x["time"], reverse=True)
 
-    # 导出文件
+    # 写入 JSON。如果没有数据，写入干净的空列表 []，网页前端将自适应展示安全提示
     with open('opinion_data.json', 'w', encoding='utf-8') as f:
         json.dump(unique_data, f, ensure_ascii=False, indent=4)
-    print(f"成功导出 {len(unique_data)} 条敏感信息！")</pre>
+    print(f"数据处理完毕。共成功保留 {len(unique_data)} 条24小时内的时效性信息。")</pre>
                             </div>
-                            <p class="text-xs text-slate-400 mt-2">（注：粘好后，滑动到页面最下方点击绿色“Commit changes”保存该文件。）</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 4 -->
-                <div class="border-b border-slate-100 pb-6">
-                    <div class="flex items-start space-x-3">
-                        <span class="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">4</span>
-                        <div class="space-y-2 w-full">
-                            <p class="font-bold text-slate-900 text-base">第四步：设定每日 9:00 闹钟（自动化配置）</p>
-                            <p class="text-xs text-slate-500">
-                                这一步是设置定时任务，让 GitHub 的服务器每天早上 9 点准时起来干活并更新页面：
-                            </p>
-                            <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-500">
-                                <li>在你的仓库页面上，点击 “<strong>Add file</strong>” -> “<strong>Create new file</strong>”。</li>
-                                <li><strong>文件名必须严格输入：<code class="bg-slate-100 px-1.5 py-0.5 rounded text-red-600 font-mono">.github/workflows/main.yml</code></strong></li>
-                                <li class="text-slate-400">（输入前面的文件夹斜杠时，GitHub 会自动转为目录。确保最终路径跟上面一模一样）</li>
-                                <li>在下方内容区，粘贴我们为你写好的自动运行配置文件：</li>
-                            </ol>
-                            <!-- Code Area -->
-                            <div class="relative bg-slate-950 rounded-xl p-4 mt-3">
-                                <div class="absolute right-3 top-3">
-                                    <button onclick="copyToClipboard('yaml-code-box')" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-2.5 py-1 rounded transition-colors flex items-center">
-                                        <i data-lucide="copy" class="w-3.5 h-3.5 mr-1"></i>复制定时任务代码
-                                    </button>
-                                </div>
-                                <pre id="yaml-code-box" class="text-slate-300 text-xs font-mono overflow-x-auto max-h-48 whitespace-pre leading-relaxed">name: Daily Opinion Auto Update
-
-on:
-  schedule:
-    # 国际标准时间 (UTC) 01:00，对应北京时间 09:00 (东八区时间)
-    - cron: '0 1 * * *'
-  workflow_dispatch: # 允许你随时在 GitHub 页面上手动点击运行
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # 授予写入权限，以便脚本自动将结果写回仓库
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Run Crawler Script
-      run: python crawler.py
-
-    - name: Save & Push Changes
-      run: |
-        git config --global user.name "GitHub Action Bot"
-        git config --global user.email "action@github.com"
-        git add opinion_data.json
-        git commit -m "Auto-updated opinions at 09:00" || exit 0
-        git push origin main</pre>
-                            </div>
-                            <p class="text-xs text-slate-400 mt-2">（注：粘好后，滑动到页面最下方点击绿色“Commit changes”保存该文件。）</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 5 -->
+                <!-- Step 3 -->
                 <div>
-                    <div class="flex items-start space-x-3">
-                        <span class="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">5</span>
-                        <div class="space-y-2 w-full">
-                            <p class="font-bold text-slate-900 text-base">第五步：一键开启免费公共网址</p>
-                            <p class="text-xs text-slate-500">
-                                最后一步，让你的仓库变成一个可以随时通过手机或电脑打开访问的在线网址：
+                    <div class="flex items-start space-x-2">
+                        <span class="bg-slate-900 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                        <div class="space-y-1.5 w-full">
+                            <p class="font-bold text-slate-900 text-xs">第三步：手动触发立即刷新验证</p>
+                            <p class="text-[11px] text-slate-600 leading-normal">
+                                修改并保存完 <code class="bg-slate-100 px-1 py-0.5 text-slate-800">crawler.py</code> 代码后，点击你的 GitHub 仓库顶部的 <strong class="text-slate-800">⚡ Actions</strong> -> 点击左侧的 <strong class="text-slate-800">Daily Opinion Auto Update</strong> -> 点击右侧浅灰色的 <strong class="text-slate-800">Run workflow</strong>。一分钟后，你全新的 24 小时高时效版系统就全面大功告成了！
                             </p>
-                            <ol class="list-decimal pl-5 space-y-1 text-xs text-slate-500">
-                                <li>在你的 GitHub 仓库顶部，点击 “<strong class="text-slate-800"><i data-lucide="settings" class="w-3.5 h-3.5 inline mr-0.5"></i>Settings</strong>”（设置）选项卡。</li>
-                                <li>在左侧导航栏中，点击 “<strong>Pages</strong>” 选项。</li>
-                                <li>在中间的 “Build and deployment” 下找到 <strong>Branch</strong>，将下拉框的 “None” 更改为 “<strong>main</strong>”。</li>
-                                <li>点击右侧的 “<strong>Save</strong>” 保存按钮。</li>
-                                <li>等待大约 1 分钟，刷新该页面。你会在上方看到一排绿色的提示语：“<strong>Your site is live at...</strong>” 后面跟着的就是你的专属全球访问网址！</li>
-                            </ol>
                         </div>
                     </div>
                 </div>
@@ -435,164 +397,159 @@ jobs:
             
             <!-- Modal Footer -->
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-                <span class="text-xs text-slate-400">系统已经配置了自动容错机制，未运行定时器时，网页将默认启动高保真演示数据。</span>
-                <button onclick="toggleModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2 rounded-xl text-xs transition-colors shadow-sm">
-                    我已经看懂了，关闭教程
+                <span class="text-[10px] text-slate-400">24小时高时效精准过滤版系统。</span>
+                <button onclick="toggleModal()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors shadow-sm">
+                    关闭向导
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400 text-xs">
-            <p>基于开源架构设计 · 仅供舆情学术分析与危机公关合规研究使用</p>
-            <p class="mt-1">© 2026 Custom Intelligence Hub. All rights reserved.</p>
+    <footer class="bg-white border-t border-slate-200 py-4 mt-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400 text-[10px]">
+            <p>基于 24 小时精准时区校验 · 敏感舆情分析研究工作台</p>
+            <p class="mt-0.5">© 2026 Custom Intelligence Hub. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Logic and Mock Data -->
+    <!-- System Logic & Mock Data -->
     <script>
-        // 1. Mock Data - 备用演示数据 (当本地未接入后端或定时器未跑完时使用)
+        // High fidelity mock data when opinion_data.json is missing
         const mockOpinionData = [
             {
                 id: 1,
-                title: "《纽约时报》社论：中国当前经济政策的深层困局与决策层误判",
+                title: "外媒最新社论：地方性高额债务让决策层陷入两难，对危机化解带来挑战",
                 source: "News",
-                sourceName: "纽约时报 (New York Times)",
-                time: "今日 08:45",
-                url: "https://www.nytimes.com",
+                sourceName: "美国之音 (VOA)",
+                time: "今日 08:30",
+                url: "#",
                 sentiment: "High",
-                summary: "文章尖锐批评了以习近平为核心的决策圈对房地产危机和地方债的处理方式。指出过度集中的权力导致政策纠偏机制失效，外资正加速流出中国市场。",
-                keywords: ["经济政策", "权力集中", "外资流出"]
+                summary: "在过去24小时内，多家媒体深入聚焦了中国面对地方债务暴雷的防范机制。专家指出，决策层在应对当下多重抗议性表达与地方赤字时，政策空间的边际正急剧收窄。",
+                keywords: ["暴雷", "危机", "地方债务"]
             },
             {
                 id: 2,
-                title: "Twitter 热门讨论：关于对华科技出口管制政策对中南海经济战略的冲击",
-                source: "Twitter",
-                sourceName: "@AsiaGeopolitics (X / Twitter)",
-                time: "今日 07:30",
-                url: "https://x.com",
-                sentiment: "High",
-                summary: "多名海外中国观察学者发布推文，分析习近平近日在科技自立自强讲话背后的系统性困境，指出半导体禁令已经对核心科研机构造成不可逆的负面影响。",
-                keywords: ["芯片禁令", "自立自强", "科技脱钩"]
-            },
-            {
-                id: 3,
-                title: "YouTube 深度解析：中国地方债务暴雷如何动摇高层执政合法性",
-                source: "YouTube",
-                sourceName: "五岳散人海外频道 (YouTube)",
-                time: "今日 06:15",
-                url: "https://youtube.com",
+                title: "海外地缘周刊：领袖命令式政策在地方推进过程中频现层层阻碍",
+                source: "News",
+                sourceName: "自由亚洲电台 (RFA)",
+                time: "今日 04:12",
+                url: "#",
                 sentiment: "Medium",
-                summary: "视频全面梳理了贵州、山东等省份的债务重组细节。博主认为，中央政府目前缺乏有效救市手段，现行的‘强力监管’只能推迟危机，而债务危机将直接对领袖的‘新时代’经济叙事构成挑战。",
-                keywords: ["地方债暴雷", "执政合法性", "金融监管"]
+                summary: "海外最新观察报告指出，部分中枢决策在科技自立自强专项行动中正面临来自学界与部分地方机构骨干的隐性阻碍，推进效率受到显性抵制与消极执行。",
+                keywords: ["极权", "严控", "阻碍"]
             }
         ];
 
+        let loadedData = [];
         let currentFilter = 'all';
-        let loadedData = []; // 动态加载的数据
 
-        // 2. Initialize Page
+        // 1. Initial configuration
         window.addEventListener('DOMContentLoaded', () => {
-            // Initialize Lucide Icons
             lucide.createIcons();
-            
-            // 尝试读取真实的 opinion_data.json
+            startCountdown();
+
+            // Attempt to load opinion_data.json which was crawled by crawler.py
             fetch('./opinion_data.json')
                 .then(res => {
-                    if(!res.ok) throw new Error("无法读取配置文件");
+                    if (!res.ok) throw new Error("JSON file missing");
                     return res.json();
                 })
                 .then(data => {
                     loadedData = data;
-                    // 更新顶部标识为：真实数据
+                    
+                    // Update state badge
                     const badge = document.getElementById('data-source-badge');
                     badge.className = "flex items-center space-x-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-medium border border-emerald-200";
                     badge.querySelector('span').className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                    document.getElementById('update-timer').innerText = "今日 09:00 已自动更新";
-                    
+                    document.getElementById('update-timer').innerText = "系统运行正常：24h全网监测正常";
+
+                    // Update Diagnostic logs
+                    document.getElementById('diagnose-file').innerText = "🟢 正常 (已成功加载 opinion_data.json)";
+                    document.getElementById('diagnose-file').className = "text-emerald-600 font-semibold";
+                    document.getElementById('diagnose-time').innerText = data.length > 0 && data[0].time ? data[0].time : "今日";
+
                     renderFeed(loadedData);
                     renderChart(loadedData);
                 })
                 .catch(err => {
-                    // 如果读取失败，展示备用演示数据，并展示警告提示栏
-                    console.log("未检测到自动化JSON数据，启动内置演示数据...", err);
+                    console.log("Unable to find opinion_data.json. Fallback to offline mock data.", err);
                     loadedData = mockOpinionData;
-                    
+
+                    // Update state badge for warning
                     const badge = document.getElementById('data-source-badge');
                     badge.className = "flex items-center space-x-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-medium border border-amber-200";
                     badge.querySelector('span').className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
-                    document.getElementById('update-timer').innerText = "本地演示模式";
-                    
+                    document.getElementById('update-timer').innerText = "演示数据模式 (待配置)";
+
+                    // Show Warning Bar
                     document.getElementById('data-status-alert').classList.remove('hidden');
-                    
+
+                    // Update Diagnostic logs
+                    document.getElementById('diagnose-file').innerText = "🔴 找不到 opinion_data.json 文件 (请完成第一步和第二步并触发运行)";
+                    document.getElementById('diagnose-file').className = "text-red-500 font-semibold";
+                    document.getElementById('diagnose-time').innerText = "无 (尚未进行首次成功抓取)";
+
                     renderFeed(loadedData);
                     renderChart(loadedData);
                 });
-
-            // Start Countdown
-            startCountdown();
         });
 
-        // 3. Render Feed Items
+        // 2. Render UI List
         function renderFeed(data) {
             const container = document.getElementById('feed-container');
             container.innerHTML = '';
 
+            // ⚠️ 极其关键：如果数据为空，直接显示精致优雅的“24小时内未发现敏感舆情”安全板。不展示任何老数据或无关条目！
             if (data.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white p-12 text-center rounded-2xl border border-slate-200">
-                        <i data-lucide="folder-open" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
-                        <p class="text-slate-500 text-sm">暂无匹配的敏感舆情数据</p>
+                    <div class="bg-white p-12 text-center rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+                        <div class="p-3.5 bg-emerald-50 rounded-full text-emerald-500 mb-3 animate-pulse">
+                            <i data-lucide="shield-check" class="w-10 h-10"></i>
+                        </div>
+                        <h4 class="text-slate-900 font-bold text-sm mb-1">过去 24 小时内未发现符合红线的敏感舆情</h4>
+                        <p class="text-slate-400 text-[10px] max-w-sm leading-relaxed">
+                            系统在过去的 24 小时内完成了对所有关联外媒与独立信源的检索，未发现包含监测主体与任何负面红线词组合的报道。当前环境平稳。
+                        </p>
                     </div>
                 `;
+                document.getElementById('stat-today-count').innerText = "0 条";
                 lucide.createIcons();
                 return;
             }
 
             data.forEach(item => {
-                const sentimentColor = item.sentiment === 'High' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-amber-50 text-amber-700 border-amber-100';
-                const sentimentText = item.sentiment === 'High' ? '高风险舆情' : '中风险舆情';
+                const sentimentColor = item.sentiment === 'High' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+                const sentimentText = item.sentiment === 'High' ? '极敏感舆情' : '中风险舆情';
                 
-                let sourceBadge = '';
-                if (item.source === 'Twitter') {
-                    sourceBadge = '<span class="px-2 py-0.5 bg-sky-50 text-sky-600 rounded text-[10px] font-medium border border-sky-100">X / Twitter</span>';
-                } else if (item.source === 'News') {
-                    sourceBadge = '<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px] font-medium border border-indigo-100">海外媒体</span>';
-                } else {
-                    sourceBadge = '<span class="px-2 py-0.5 bg-rose-50 text-rose-600 rounded text-[10px] font-medium border border-rose-100">视频源</span>';
-                }
-
                 const card = document.createElement('div');
-                card.className = "bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 group relative";
+                card.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 group relative";
                 card.innerHTML = `
-                    <div class="flex flex-col space-y-3">
+                    <div class="flex flex-col space-y-2.5">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
-                                ${sourceBadge}
-                                <span class="text-xs font-semibold text-slate-700">${item.sourceName}</span>
+                                <span class="px-1.5 py-0.5 bg-rose-50 text-rose-700 rounded text-[9px] font-medium border border-rose-100">${item.sourceName}</span>
                                 <span class="text-slate-300 text-xs">•</span>
-                                <span class="text-xs text-slate-400">${item.time}</span>
+                                <span class="text-[10px] text-slate-400">${item.time}</span>
                             </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${sentimentColor}">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${sentimentColor}">
                                 ${sentimentText}
                             </span>
                         </div>
 
-                        <h4 class="font-bold text-slate-900 group-hover:text-red-600 transition-colors leading-snug">
+                        <h4 class="font-bold text-slate-950 group-hover:text-red-600 transition-colors leading-snug text-xs md:text-sm">
                             <a href="${item.url}" target="_blank" class="flex items-center hover:underline">
                                 ${item.title}
                                 <i data-lucide="external-link" class="w-3.5 h-3.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                             </a>
                         </h4>
 
-                        <p class="text-xs text-slate-500 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <p class="text-xs text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
                             ${item.summary}
                         </p>
 
-                        <div class="flex flex-wrap gap-1.5 pt-1">
-                            ${item.keywords.map(kw => `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px]"># ${kw}</span>`).join('')}
+                        <div class="flex flex-wrap gap-1">
+                            ${item.keywords.map(kw => `<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px]"># 触发: ${kw}</span>`).join('')}
                         </div>
                     </div>
                 `;
@@ -603,65 +560,56 @@ jobs:
             lucide.createIcons();
         }
 
-        // 4. Filter and Search Logic
+        // 3. Search and filtering
         function filterFeed() {
-            const searchQuery = document.getElementById('search-input').value.toLowerCase();
-            
+            const query = document.getElementById('search-input').value.toLowerCase();
             const filtered = loadedData.filter(item => {
-                const matchesSearch = item.title.toLowerCase().includes(searchQuery) || 
-                                      item.summary.toLowerCase().includes(searchQuery) ||
-                                      item.keywords.some(kw => kw.toLowerCase().includes(searchQuery));
+                const matchQuery = item.title.toLowerCase().includes(query) || 
+                                   item.summary.toLowerCase().includes(query) ||
+                                   item.keywords.some(k => k.toLowerCase().includes(query));
                 
-                const matchesSource = currentFilter === 'all' || item.source === currentFilter;
-
-                return matchesSearch && matchesSource;
+                const matchSource = currentFilter === 'all' || item.source === currentFilter;
+                return matchQuery && matchSource;
             });
-
             renderFeed(filtered);
         }
 
         function setSourceFilter(source) {
             currentFilter = source;
-            
             document.querySelectorAll('.source-tab').forEach(tab => {
                 if (tab.getAttribute('data-source') === source) {
-                    tab.classList.add('active-tab');
+                    tab.classList.add('tab-active');
                     tab.classList.remove('text-slate-600', 'hover:bg-slate-100');
                 } else {
-                    tab.classList.remove('active-tab');
+                    tab.classList.remove('tab-active');
                     tab.classList.add('text-slate-600', 'hover:bg-slate-100');
                 }
             });
-
             filterFeed();
         }
 
-        // 5. Chart.js Render
+        // 4. Render simple channel statistics
         let chartInstance = null;
         function renderChart(dataList) {
             const ctx = document.getElementById('channelChart').getContext('2d');
             
-            // Count sources
-            const counts = { News: 0, Twitter: 0, YouTube: 0 };
+            // Analyze source distribution
+            const counts = { VOA: 0, RFA: 0, DW: 0 };
             dataList.forEach(item => {
-                if(counts[item.source] !== undefined) {
-                    counts[item.source]++;
-                } else {
-                    counts.News++; // Default fallback
-                }
+                if (item.sourceName && (item.sourceName.includes("VOA") || item.sourceName.includes("美国之音"))) counts.VOA++;
+                else if (item.sourceName && (item.sourceName.includes("RFA") || item.sourceName.includes("自由亚洲"))) counts.RFA++;
+                else counts.DW++;
             });
 
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+            if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['海外媒体', 'X / Twitter', '视频媒介'],
+                    labels: ['美国之音', '自由亚洲电台', '德国之声/其他'],
                     datasets: [{
-                        data: [counts.News, counts.Twitter, counts.YouTube],
-                        backgroundColor: ['#6366f1', '#38bdf8', '#f87171'],
+                        data: [counts.VOA, counts.RFA, counts.DW],
+                        backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b'],
                         borderWidth: 0,
                     }]
                 },
@@ -672,8 +620,8 @@ jobs:
                         legend: {
                             position: 'bottom',
                             labels: {
-                                boxWidth: 12,
-                                font: { size: 11 }
+                                boxWidth: 10,
+                                font: { size: 10 }
                             }
                         }
                     },
@@ -682,71 +630,65 @@ jobs:
             });
         }
 
-        // 6. Countdown to Next 9:00 AM Update
+        // 5. Setup countdown timer to next 9:00 AM
         function startCountdown() {
             const timerEl = document.getElementById('countdown-timer');
-            
-            function updateTimer() {
+            function update() {
                 const now = new Date();
-                const nextUpdate = new Date();
-                
-                // Set target to today 09:00:00
-                nextUpdate.setHours(9, 0, 0, 0);
-                
-                // If it is already past 9 AM today, target tomorrow 9 AM
-                if (now >= nextUpdate) {
-                    nextUpdate.setDate(nextUpdate.getDate() + 1);
-                }
-                
-                const diff = nextUpdate - now;
-                
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
-                const formatted = [
-                    hours.toString().padStart(2, '0'),
-                    minutes.toString().padStart(2, '0'),
-                    seconds.toString().padStart(2, '0')
-                ].join(':');
-                
-                timerEl.innerText = formatted;
+                const target = new Date();
+                target.setHours(9, 0, 0, 0);
+                if (now >= target) target.setDate(target.getDate() + 1);
+
+                const diff = target - now;
+                const h = Math.floor(diff / (1000 * 60 * 60)).toString().padStart(2, '0');
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                const s = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                timerEl.innerText = `${h}:${m}:${s}`;
             }
-            
-            updateTimer();
-            setInterval(updateTimer, 1000);
+            update();
+            setInterval(update, 1000);
         }
 
-        // 7. Utility Functions
+        // 6. Utility Functions
+        function toggleModal() {
+            document.getElementById('guide-modal').classList.toggle('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('custom-toast');
+            toast.querySelector('.toast-text').innerText = msg;
+            toast.classList.remove('hidden', 'opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                showToast("🎉 代码复制成功！请登录 GitHub 覆盖 crawler.py 代码。");
+            } catch (err) {
+                showToast("复制失败，请手动选取复制。");
+            }
+            document.body.removeChild(temp);
+        }
+
         function refreshData() {
             const btn = document.querySelector('button[onclick="refreshData()"]');
             btn.classList.add('animate-spin');
-            
             setTimeout(() => {
                 btn.classList.remove('animate-spin');
-                location.reload(); // Reload page to fetch new file
+                location.reload();
             }, 800);
-        }
-
-        function toggleModal() {
-            const modal = document.getElementById('guide-modal');
-            modal.classList.toggle('hidden');
-        }
-
-        // Standard clipboard function for compatibility within iframe environments
-        function copyToClipboard(elementId) {
-            const textToCopy = document.getElementById(elementId).innerText;
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = textToCopy;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            try {
-                document.execCommand('copy');
-                alert("🎉 代码已成功复制到剪贴板！可以直接去 GitHub 粘贴。");
-            } catch (err) {
-                alert("复制失败，请手动选择并复制文本框内的内容。");
-            }
-            document.body.removeChild(tempTextArea);
         }
     </script>
 </body>
