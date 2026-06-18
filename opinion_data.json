@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "title": "特朗普在G7记者会上高调感谢习近平和普京",
+        "source": "News",
+        "sourceName": "德国之声 (DW)",
+        "time": "2026-06-18 17:19",
+        "url": "https://www.dw.com/zh/特朗普在g7记者会上高调感谢习近平和普京/a-77601779?maca=chi-rss-chi-all-1127-xml-mrss",
+        "sentiment": "Medium",
+        "summary": "美国总统特朗普周三在G7峰会记者会上表示，很感谢习近平和普京没有介入伊朗冲突，保持了“中立”态度，没有阻挠他遏制德黑兰核野心的努力。...",
+        "keywords": [
+            "冲突"
+        ]
+    }
+]
