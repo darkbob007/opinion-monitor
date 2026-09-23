@@ -1,1 +1,26 @@
-[]
+[
+    {
+        "title": "习近平访美前夕 抗议者在美国国会附近挂横幅",
+        "source": "News",
+        "sourceName": "自由亚洲电台 (RFA)",
+        "time": "2026-09-23 05:09",
+        "url": "https://rfa.org/mandarin/xinwenkuaixun/2026/09/22/xi-washington-tibet-protest/",
+        "sentiment": "Medium",
+        "summary": "习近平即将抵达华盛顿之际，美国多地出现抗议活动。一名藏人学生抗议者9月22日在美国国会附近爬上灯杆并展开横幅；此前纽约法拉盛也举行了反习近平游行。...",
+        "keywords": [
+            "抗议"
+        ]
+    },
+    {
+        "title": "贸易、关税、人工智能：一文看懂美中峰会重点",
+        "source": "News",
+        "sourceName": "自由亚洲电台 (RFA)",
+        "time": "2026-09-22 20:41",
+        "url": "https://rfa.org/mandarin/guoji/2026/09/22/us-china-summit/",
+        "sentiment": "Medium",
+        "summary": "中国国家主席习近平预计美东时间9月23日下午抵达美国展开访问，并且再次与特朗普总统举行高峰会谈。综合各方学者及评论家的判断，两国元首会谈、交涉内容可能遍及贸易战、对台军售，人工智能技术限制，以及「美中战略关系」等范畴。...",
+        "keywords": [
+            "限制"
+        ]
+    }
+]
